@@ -4,22 +4,17 @@
     "module": "CommonJS",
     "moduleResolution": "Node",
     "outDir": "dist",
-    "rootDir": "src",
+    "rootDir": ".",                       // <— ВАЖНО: корень = весь репозиторий
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
 
-    // Ослабляем строгие проверки, из-за которых валится билд на Vercel
     "strict": false,
     "noImplicitAny": false,
     "exactOptionalPropertyTypes": false,
     "noPropertyAccessFromIndexSignature": false,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-
-    // Разрешаем эмит даже при типовых ошибках (чтобы сборка проходила)
     "noEmitOnError": false,
-
-    // Ускоряем и избегаем конфликтов версий в lambda-среде
     "skipLibCheck": true,
 
     "resolveJsonModule": true,
@@ -27,6 +22,6 @@
     "lib": ["ES2020", "DOM"],
     "isolatedModules": false
   },
-  "include": ["src/**/*.ts", "api/**/*.ts"],
+  "include": ["src/**/*.ts", "api/**/*.ts"],   // <— и src, и api
   "exclude": ["node_modules", "dist"]
 }
