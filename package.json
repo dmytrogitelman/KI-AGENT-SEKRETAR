@@ -5,8 +5,10 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc",
+    "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
+    "postinstall": "prisma generate",
+    "vercel-build": "prisma generate && tsc -p tsconfig.json",
     "test": "vitest",
     "test:coverage": "vitest --coverage",
     "test:e2e": "vitest --config vitest.e2e.config.ts",
@@ -52,6 +54,7 @@
     "@types/supertest": "^2.0.16",
     "@typescript-eslint/eslint-plugin": "^6.14.0",
     "@typescript-eslint/parser": "^6.14.0",
+    "@vercel/node": "^5.3.24",
     "@vitest/coverage-v8": "^1.0.4",
     "eslint": "^8.55.0",
     "supertest": "^6.3.3",
@@ -60,7 +63,6 @@
     "vitest": "^1.0.4"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=18.17.0"
   }
 }
-
