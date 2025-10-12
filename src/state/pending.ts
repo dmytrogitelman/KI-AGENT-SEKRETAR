@@ -13,7 +13,7 @@ export type Pending = {
 const TTL_MS = 30 * 60 * 1000; // 30 minutes
 const MAX_RETRIES = 3;
 
-const redisUrl = process.env.REDIS_URL || '';
+const redisUrl = process.env['REDIS_URL'] || '';
 const memory = new Map<string, Pending>();
 let redis: Redis | null = null;
 
@@ -21,7 +21,6 @@ let redis: Redis | null = null;
 if (redisUrl) {
   try {
     redis = new Redis(redisUrl, {
-      retryDelayOnFailover: 100,
       maxRetriesPerRequest: 3,
       lazyConnect: true,
     });
@@ -191,7 +190,10 @@ export async function cleanupExpired(): Promise<number> {
         if (v) {
           const pending = JSON.parse(v) as Pending;
           if (pending.expiresAt <= now) {
-            expiredKeys.push(keys[i]);
+            const key = keys[i];
+            if (key) {
+              expiredKeys.push(key);
+            }
           }
         }
       });
@@ -221,3 +223,4 @@ export async function cleanupExpired(): Promise<number> {
 
 // Cleanup expired sessions every 5 minutes
 setInterval(cleanupExpired, 5 * 60 * 1000);
+

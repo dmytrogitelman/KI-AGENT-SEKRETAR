@@ -26,7 +26,7 @@ export type FreeSlot = {
 const mockEvents = new Map<string, CreateEventInput[]>();
 
 export async function findFreeSlots(
-  userId: string, 
+  _userId: string, 
   durationMin = 30,
   startDate?: string,
   endDate?: string
@@ -124,7 +124,7 @@ export async function createEvent(userId: string, input: CreateEventInput): Prom
     return {
       ok: true,
       id: eventId,
-      joinUrl,
+      joinUrl: joinUrl || '',
       provider: 'mock',
     };
   } catch (error) {
@@ -151,7 +151,19 @@ export async function updateEvent(userId: string, eventId: string, updates: Part
     }
 
     // Update the event
-    userEvents[eventIndex] = { ...userEvents[eventIndex], ...updates };
+    const existingEvent = userEvents[eventIndex];
+    if (existingEvent) {
+      userEvents[eventIndex] = { 
+        ...existingEvent, 
+        title: updates.title || existingEvent.title,
+        startISO: updates.startISO || existingEvent.startISO,
+        endISO: updates.endISO || existingEvent.endISO,
+        attendees: updates.attendees || existingEvent.attendees || [],
+        zoom: updates.zoom || existingEvent.zoom,
+        location: updates.location || existingEvent.location,
+        description: updates.description || existingEvent.description,
+      };
+    }
     mockEvents.set(userId, userEvents);
 
     return {
@@ -250,3 +262,4 @@ export function formatEventTime(startISO: string, endISO: string, timezone = 'Eu
     return `${startISO} - ${endISO}`;
   }
 }
+

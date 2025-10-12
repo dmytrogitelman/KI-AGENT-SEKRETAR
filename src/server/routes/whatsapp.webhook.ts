@@ -4,12 +4,12 @@ import twilio from 'twilio';
 const whatsappRouter = Router();
 
 const hasTwilioCreds =
-  !!process.env.TWILIO_ACCOUNT_SID &&
-  !!process.env.TWILIO_AUTH_TOKEN &&
-  !!process.env.TWILIO_WHATSAPP_NUMBER;
+  !!process.env['TWILIO_ACCOUNT_SID'] &&
+  !!process.env['TWILIO_AUTH_TOKEN'] &&
+  !!process.env['TWILIO_WHATSAPP_NUMBER'];
 
 const twilioClient = hasTwilioCreds
-  ? twilio(process.env.TWILIO_ACCOUNT_SID as string, process.env.TWILIO_AUTH_TOKEN as string)
+  ? twilio(process.env['TWILIO_ACCOUNT_SID'] as string, process.env['TWILIO_AUTH_TOKEN'] as string)
   : null;
 
 // === GET /webhook/whatsapp — verify (если нужно) ===
@@ -17,7 +17,7 @@ whatsappRouter.get('/webhook/whatsapp', (req: Request, res: Response) => {
   const mode = String(req.query['hub.mode'] || '');
   const token = String(req.query['hub.verify_token'] || '');
   const challenge = String(req.query['hub.challenge'] || '');
-  const expected = process.env.WHATSAPP_VERIFY_TOKEN || '';
+  const expected = process.env['WHATSAPP_VERIFY_TOKEN'] || '';
   if (mode === 'subscribe' && token && expected && token === expected) {
     return res.status(200).send(challenge);
   }
@@ -33,7 +33,7 @@ whatsappRouter.post('/webhook/whatsapp', async (req: Request, res: Response) => 
 
   // 1) Сразу подтверждаем Twilio корректным TwiML
   try {
-    const isTest = (process.env.NODE_ENV || '').toLowerCase() === 'test';
+    const isTest = (process.env['NODE_ENV'] || '').toLowerCase() === 'test';
     if (isTest) {
       res.status(200).type('text/plain').send('OK');
     } else {
@@ -94,29 +94,29 @@ whatsappRouter.post('/webhook/whatsapp', async (req: Request, res: Response) => 
   }
 
   // 4) Асинхронная отправка ответа в WhatsApp
-  if (twilioClient && From && process.env.TWILIO_WHATSAPP_NUMBER) {
+  if (twilioClient && From && process.env['TWILIO_WHATSAPP_NUMBER']) {
     try {
       // 4.1 Текст
       await twilioClient.messages.create({
-        from: process.env.TWILIO_WHATSAPP_NUMBER!,
+        from: process.env['TWILIO_WHATSAPP_NUMBER']!,
         to: From,
         body: replyText,
       });
       console.log('[WA OUT TEXT] sent');
 
       // 4.2 TTS через ElevenLabs (если ключ есть и оркестратор рекомендует)
-      if (process.env.ELEVENLABS_API_KEY && shouldUseTTS) {
+      if (process.env['ELEVENLABS_API_KEY'] && shouldUseTTS) {
         const { ttsElevenLabs } = await import('../../services/tts/eleven');
         try {
           const audioOut = await ttsElevenLabs(replyText, 'reply');
           const fname = audioOut.split(/[/\\]/).pop()!;
-          const base = (process.env.PUBLIC_BASE_URL || '').replace(/\/+$/, '');
+          const base = (process.env['PUBLIC_BASE_URL'] || '').replace(/\/+$/, '');
           if (!base) {
             console.warn('PUBLIC_BASE_URL не задан! Укажи, например: https://<твой-ngrok>.ngrok-free.app');
           } else {
             const publicUrl = `${base}/media/${fname}`;
             await twilioClient.messages.create({
-              from: process.env.TWILIO_WHATSAPP_NUMBER!,
+              from: process.env['TWILIO_WHATSAPP_NUMBER']!,
               to: From,
               body: '(Голосовой ответ)',
               mediaUrl: [ publicUrl ],

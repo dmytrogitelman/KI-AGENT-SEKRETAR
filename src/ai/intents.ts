@@ -11,7 +11,7 @@ export type Intent =
 
 export type IntentResult = { intent: Intent; confidence: number; language?: string };
 
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const client = new OpenAI({ apiKey: process.env['OPENAI_API_KEY'] });
 
 const RULES: Array<{ re: RegExp; intent: Intent }> = [
   // RU
@@ -54,7 +54,7 @@ export function classifyByRules(text: string): IntentResult {
   return { intent: 'unknown', confidence: 0.0 };
 }
 
-export async function classifyIntent(text: string, langHint?: string): Promise<IntentResult> {
+export async function classifyIntent(text: string): Promise<IntentResult> {
   const rule = classifyByRules(text);
   if (rule.intent !== 'unknown') return rule;
 
@@ -92,3 +92,4 @@ Text: """${text}"""`;
     return rule;
   }
 }
+

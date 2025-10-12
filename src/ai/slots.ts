@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
 
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const client = new OpenAI({ apiKey: process.env['OPENAI_API_KEY'] });
 
 export type Slots = {
   intent: string;
@@ -161,3 +161,4 @@ export function formatSlotsForDisplay(slots: Slots): string {
   
   return parts.join('\n');
 }
+

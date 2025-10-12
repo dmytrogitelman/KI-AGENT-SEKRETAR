@@ -1,7 +1,7 @@
 import { GoogleCalendarService, CalendarEvent } from './googleCalendar';
 import { MicrosoftCalendarService } from './microsoftCalendar';
 import { ZoomService, ZoomMeeting } from './zoomService';
-import { prisma } from '../../db/prismaClient';
+import { getPrisma } from '../../db/prismaClient';
 import { logger } from '../../utils/logger';
 
 export class CalendarService {
@@ -16,6 +16,7 @@ export class CalendarService {
   private async initializeServices(userId: string) {
     try {
       // Get user integrations
+      const prisma = getPrisma();
       const integrations = await prisma.integration.findMany({
         where: {
           userId,
@@ -76,15 +77,16 @@ export class CalendarService {
 
       // Store event in database
       if (eventId) {
+        const prisma = getPrisma();
         await prisma.event.create({
           data: {
             userId: '', // Will be set by caller
             title: event.title,
-            description: event.description,
+            description: event.description || null,
             startTime: event.startTime,
             endTime: event.endTime,
-            location: event.location,
-            zoomUrl,
+            location: event.location || null,
+            zoomUrl: zoomUrl || null,
           },
         });
       }
@@ -95,7 +97,7 @@ export class CalendarService {
         title: event.title,
       });
 
-      return { eventId: eventId!, zoomUrl };
+      return { eventId: eventId!, zoomUrl: zoomUrl };
     } catch (error) {
       logger.error('Failed to create calendar event', { error, event });
       throw error;
@@ -201,14 +203,15 @@ export class CalendarService {
       }
 
       // Update in database
+      const prisma = getPrisma();
       await prisma.event.updateMany({
         where: { id: eventId },
         data: {
-          title: updates.title,
-          description: updates.description,
-          startTime: updates.startTime,
-          endTime: updates.endTime,
-          location: updates.location,
+          title: updates.title || undefined,
+          description: updates.description || undefined,
+          startTime: updates.startTime || undefined,
+          endTime: updates.endTime || undefined,
+          location: updates.location || undefined,
         },
       });
 
@@ -232,6 +235,7 @@ export class CalendarService {
       }
 
       // Delete from database
+      const prisma = getPrisma();
       await prisma.event.deleteMany({
         where: { id: eventId },
       });

@@ -2,8 +2,8 @@ import fs from 'fs';
 import path from 'path';
 import https from 'https';
 
-const TWILIO_SID = process.env.TWILIO_ACCOUNT_SID || '';
-const TWILIO_AUTH = process.env.TWILIO_AUTH_TOKEN || '';
+const TWILIO_SID = process.env['TWILIO_ACCOUNT_SID'] || '';
+const TWILIO_AUTH = process.env['TWILIO_AUTH_TOKEN'] || '';
 
 export function downloadTwilioMedia(mediaUrl: string, filenameHint = 'audio') : Promise<string> {
   return new Promise((resolve, reject) => {
@@ -46,3 +46,4 @@ export function downloadTwilioMedia(mediaUrl: string, filenameHint = 'audio') : 
     req.end();
   });
 }
+

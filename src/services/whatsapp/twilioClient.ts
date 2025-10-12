@@ -71,7 +71,7 @@ export class WhatsAppService {
       
       // Transcribe using OpenAI Whisper
       const transcription = await this.openai.audio.transcriptions.create({
-        file: new File([audioBuffer], 'audio.wav', { type: 'audio/wav' }),
+        file: new File([Buffer.from(audioBuffer)], 'audio.wav', { type: 'audio/wav' }),
         model: 'whisper-1',
         language: 'auto', // Auto-detect language
       });

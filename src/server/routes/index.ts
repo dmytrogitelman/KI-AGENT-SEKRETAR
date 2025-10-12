@@ -30,11 +30,11 @@ export function setupRoutes(app: Express) {
   });
 
   // Доп. API (пример)
-  app.get('/api/status', (req, res) => {
+  app.get('/api/status', (_, res) => {
     res.json({
       status: 'ok',
       timestamp: new Date().toISOString(),
-      version: process.env.npm_package_version || '1.0.0',
+      version: process.env['npm_package_version'] || '1.0.0',
     });
   });
 }

@@ -35,7 +35,7 @@ export class TodoistService {
         `${this.baseUrl}/tasks`,
         {
           content: task.content,
-          description: task.description,
+          description: task.description || '',
           due_date: task.dueDate?.toISOString(),
           priority: task.priority,
           labels: task.labels,
@@ -93,7 +93,7 @@ export class TodoistService {
       const tasks: TodoistTask[] = response.data.map((task: any) => ({
         id: task.id,
         content: task.content,
-        description: task.description,
+        description: task.description || '',
         dueDate: task.due ? new Date(task.due.date) : undefined,
         priority: task.priority,
         labels: task.labels,
@@ -295,7 +295,7 @@ export class TodoistService {
       const tasks: TodoistTask[] = response.data.map((task: any) => ({
         id: task.id,
         content: task.content,
-        description: task.description,
+        description: task.description || '',
         dueDate: task.due ? new Date(task.due.date) : undefined,
         priority: task.priority,
         labels: task.labels,

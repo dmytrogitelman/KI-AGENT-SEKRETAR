@@ -1,28 +1,28 @@
 import { Router } from 'express';
-import { prisma } from '../../db/prismaClient';
+import { getPrisma } from '../../db/prismaClient';
 import { logger } from '../../utils/logger';
 
 const router = Router();
 
 // Basic health check
-router.get('/', (req, res) => {
+router.get('/', (_, res) => {
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     memory: process.memoryUsage(),
-    version: process.env.npm_package_version || '1.0.0',
+    version: process.env['npm_package_version'] || '1.0.0',
   });
 });
 
 // Detailed health check with dependencies
-router.get('/detailed', async (req, res) => {
+router.get('/detailed', async (_, res) => {
   const health = {
     status: 'ok',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     memory: process.memoryUsage(),
-    version: process.env.npm_package_version || '1.0.0',
+    version: process.env['npm_package_version'] || '1.0.0',
     dependencies: {
       database: 'unknown',
       redis: 'unknown',
@@ -33,6 +33,7 @@ router.get('/detailed', async (req, res) => {
 
   try {
     // Check database connection
+    const prisma = getPrisma();
     await prisma.$queryRaw`SELECT 1`;
     health.dependencies.database = 'healthy';
   } catch (error) {
@@ -50,9 +51,10 @@ router.get('/detailed', async (req, res) => {
 });
 
 // Readiness probe
-router.get('/ready', async (req, res) => {
+router.get('/ready', async (_, res) => {
   try {
     // Check if all critical services are available
+    const prisma = getPrisma();
     await prisma.$queryRaw`SELECT 1`;
     
     res.json({
@@ -70,7 +72,7 @@ router.get('/ready', async (req, res) => {
 });
 
 // Liveness probe
-router.get('/live', (req, res) => {
+router.get('/live', (_, res) => {
   res.json({
     status: 'alive',
     timestamp: new Date().toISOString(),

@@ -1,6 +1,6 @@
 import { GmailService, EmailMessage, EmailDraft } from './gmailService';
 import { MicrosoftMailService } from './microsoftMailService';
-import { prisma } from '../../db/prismaClient';
+import { getPrisma } from '../../db/prismaClient';
 import { logger } from '../../utils/logger';
 
 export class EmailService {
@@ -14,6 +14,7 @@ export class EmailService {
   private async initializeServices(userId: string) {
     try {
       // Get user integrations
+      const prisma = getPrisma();
       const integrations = await prisma.integration.findMany({
         where: {
           userId,

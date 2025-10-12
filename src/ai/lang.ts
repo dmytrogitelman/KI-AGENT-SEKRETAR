@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
 
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const client = new OpenAI({ apiKey: process.env['OPENAI_API_KEY'] });
 
 export async function detectLanguage(text: string): Promise<string> {
   if (!text || text.trim().length === 0) return 'en';
@@ -80,3 +80,4 @@ export function getLanguageName(code: string): string {
   };
   return names[code] || code.toUpperCase();
 }
+

@@ -1,9 +1,9 @@
 import { classifyIntent } from './intents';
 import { detectLanguage, translate, getLanguageName } from './lang';
-import { extractSlots, formatSlotsForDisplay } from './slots';
-import { findFreeSlots, createEvent, formatEventTime } from '../services/calendar/calendar';
-import { createTask, getTasks, getTaskStats, formatTaskList } from '../services/tasks/taskService';
-import { getPending, setPending, clearPending, incrementRetry } from '../state/pending';
+import { extractSlots } from './slots';
+import { createEvent, formatEventTime } from '../services/calendar/calendar';
+import { createTask } from '../services/tasks/taskService';
+import { getPending, setPending, clearPending } from '../state/pending';
 
 export type OrchestratorResponse = { 
   text: string; 
@@ -16,10 +16,14 @@ export type OrchestratorResponse = {
   };
 };
 
-function dtToISO(date: string, time: string, tz = 'Europe/Berlin', durMin = 30): {start: string, end: string} {
+function dtToISO(date: string, time: string, durMin = 30): {start: string, end: string} {
   try {
     const [Y, M, D] = date.split('-').map(Number);
     const [h, m] = time.split(':').map(Number);
+    
+    if (!Y || !M || !D || h === undefined || m === undefined) {
+      throw new Error('Invalid date or time format');
+    }
     
     // Create date in user's timezone
     const start = new Date();
@@ -73,7 +77,7 @@ export async function processMessage(userId: string, text: string): Promise<Orch
     console.log(`[ORCHESTRATOR] Detected language: ${detectedLang}`);
 
     // 2) Classify intent
-    const intentResult = await classifyIntent(text, detectedLang);
+    const intentResult = await classifyIntent(text);
     console.log(`[ORCHESTRATOR] Intent: ${intentResult.intent} (confidence: ${intentResult.confidence})`);
 
     // 3) Process by intent
@@ -88,16 +92,16 @@ export async function processMessage(userId: string, text: string): Promise<Orch
         return await handleCreateMeeting(userId, text, detectedLang);
         
       case 'call_someone':
-        return await handleCallSomeone(text, detectedLang);
+        return await handleCallSomeone();
         
       case 'summarize':
-        return await handleSummarize(text, detectedLang);
+        return await handleSummarize();
         
       case 'small_talk':
-        return await handleSmallTalk(text, detectedLang);
+        return await handleSmallTalk();
         
       default:
-        return await handleUnknown(text, detectedLang);
+        return await handleUnknown();
     }
   } catch (error) {
     console.error('[ORCHESTRATOR ERROR]', error);
@@ -113,7 +117,7 @@ async function handleConfirmation(userId: string, pending: any): Promise<Orchest
   try {
     if (pending.intent === 'create_meeting') {
       const slots = pending.slots;
-      const dt = dtToISO(slots.date, slots.time, 'Europe/Berlin', slots.duration_min || 30);
+      const dt = dtToISO(slots.date, slots.time, slots.duration_min || 30);
       
       const result = await createEvent(userId, {
         title: slots.title || 'Встреча',
@@ -238,7 +242,10 @@ async function handleTranslate(text: string, detectedLang: string): Promise<Orch
           'russische': 'ru', 'deutsche': 'de', 'englische': 'en', 'chinesische': 'zh', 'spanische': 'es', 'französische': 'fr',
         };
         
-        targetLang = langMap[match[1].toLowerCase()] || match[1].toLowerCase();
+        const matchGroup = match[1];
+        if (matchGroup) {
+          targetLang = langMap[matchGroup.toLowerCase()] || matchGroup.toLowerCase();
+        }
         textToTranslate = text.replace(pattern.re, '').trim();
         break;
       }
@@ -274,7 +281,7 @@ async function handleCreateTask(userId: string, text: string, detectedLang: stri
     if (slots.title && !slots.due_date && !slots.priority) {
       const result = await createTask(userId, {
         title: slots.title,
-        description: slots.description,
+        description: slots.description || '',
       });
       
       if (result.ok) {
@@ -323,42 +330,43 @@ async function handleCreateMeeting(userId: string, text: string, detectedLang: s
   }
 }
 
-async function handleCallSomeone(text: string, detectedLang: string): Promise<OrchestratorResponse> {
+async function handleCallSomeone(): Promise<OrchestratorResponse> {
   const responses = [
     'Могу предложить: создать встречу/напоминание о звонке, или отправить контакт. Что предпочитаешь?',
     'Для звонка могу: создать встречу в календаре, поставить напоминание, или сохранить контакт. Что нужно?',
     'Могу помочь с организацией звонка: создать встречу, напомнить о звонке, или сохранить контактную информацию.',
   ];
   
-  const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+  const randomResponse = responses[Math.floor(Math.random() * responses.length)] || 'Могу помочь с организацией встреч, созданием задач и другими делами.';
   return { text: randomResponse, tts: true };
 }
 
-async function handleSummarize(text: string, detectedLang: string): Promise<OrchestratorResponse> {
+async function handleSummarize(): Promise<OrchestratorResponse> {
   return { 
     text: 'Пришли мне текст/подборку пунктов — сделаю краткую выжимку. Пока что могу помочь с другими задачами: создать встречу, задачу, перевести текст.', 
     tts: true 
   };
 }
 
-async function handleSmallTalk(text: string, detectedLang: string): Promise<OrchestratorResponse> {
+async function handleSmallTalk(): Promise<OrchestratorResponse> {
   const greetings = [
     'Привет! Я твой AI-секретарь. Могу помочь с организацией встреч, созданием задач, переводом текста и другими делами. Что нужно сделать?',
     'Здравствуй! Готов помочь с планированием и организацией. Могу создать встречу, задачу, перевести текст. Чем займемся?',
     'Привет! Я здесь, чтобы помочь с твоими задачами. Могу организовать встречу, создать напоминание, перевести текст. Что делаем?',
   ];
   
-  const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
+  const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)] || 'Привет! Я твой AI-секретарь. Могу помочь с организацией встреч и задач.';
   return { text: randomGreeting, tts: true };
 }
 
-async function handleUnknown(text: string, detectedLang: string): Promise<OrchestratorResponse> {
+async function handleUnknown(): Promise<OrchestratorResponse> {
   const responses = [
     'Понял. Могу помочь: создать встречу, задачу, перевести текст, подытожить информацию. Что нужно сделать?',
     'Не совсем понял, что нужно. Могу: организовать встречу, создать задачу, перевести текст. Опиши подробнее?',
     'Готов помочь! Доступные функции: планирование встреч, создание задач, перевод текста. Что выберешь?',
   ];
   
-  const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+  const randomResponse = responses[Math.floor(Math.random() * responses.length)] || 'Могу помочь с планированием встреч, созданием задач и другими делами.';
   return { text: randomResponse, tts: true };
 }
+

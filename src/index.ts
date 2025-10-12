@@ -10,7 +10,7 @@ import { requestLogger } from './server/middleware/requestLogger';
 import { rateLimiter } from './server/middleware/rateLimiter';
 
 const app = express();
-const PORT = config.PORT;
+// const PORT = config.PORT; // Commented out due to conflict
 
 // Security middleware
 app.use(helmet());
@@ -43,7 +43,7 @@ listRoutes(app); // ← печатает все зарегистрированн
 app.use(errorHandler);
 
 // Health checks
-app.get(['/health', '/healthz'], (req, res) => {
+app.get(['/health', '/healthz'], (_, res) => {
   res.status(200).json({
     status: 'ok',
     timestamp: new Date().toISOString(),
@@ -52,6 +52,7 @@ app.get(['/health', '/healthz'], (req, res) => {
 });
 
 // Start server
+const PORT = Number(process.env['PORT'] || 3000);
 app.listen(PORT, () => {
   logger.info(`🚀 WhatsApp AI Secretary Server running on port ${PORT}`);
   logger.info(`📱 Environment: ${config.NODE_ENV}`);
@@ -69,10 +70,10 @@ process.on('SIGINT', () => {
 });
 
 // src/index.ts — локальный dev-сервер
-import app from './app';
+// import app from './app'; // Commented out due to conflict
 
-const PORT = Number(process.env.PORT || 3000);
-app.listen(PORT, () => {
-  console.log(`🚀 Local server on http://127.0.0.1:${PORT}`);
+// const PORT = Number(process.env['PORT'] || 3000); // Moved to app.listen
+app.listen(Number(process.env['PORT'] || 3000), () => {
+  console.log(`🚀 Local server on http://127.0.0.1:${Number(process.env['PORT'] || 3000)}`);
 });
 

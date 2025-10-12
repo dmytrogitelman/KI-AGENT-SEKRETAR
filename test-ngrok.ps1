@@ -57,3 +57,4 @@ Write-Host "3. Aktualisiere .env mit: PUBLIC_BASE_URL=$ngrokUrl" -ForegroundColo
 Write-Host "4. Sende eine WhatsApp Nachricht an die Sandbox Nummer" -ForegroundColor Yellow
 
 Write-Host "`n=== Test abgeschlossen ===" -ForegroundColor Green
+

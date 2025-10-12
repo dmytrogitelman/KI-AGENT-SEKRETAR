@@ -45,7 +45,7 @@ export class I18nService {
       const result: I18nResult = {
         originalText: text,
         detectedLanguage,
-        translatedText,
+        translatedText: translatedText || text,
         translation,
         userLanguage,
         needsTranslation,

@@ -1,0 +1,21 @@
+# Не деплоить временные и локальные файлы
+.tmp
+tmp
+.ngrok2
+node_modules
+
+# Docker/локал-инфра
+Dockerfile
+docker-compose.yml
+
+# Секреты и локальные конфиги
+.env
+.env.*
+.env.local
+.env.development
+.env.production
+
+# Prisma: включаем только schema
+.prisma/*
+!prisma/schema.prisma
+

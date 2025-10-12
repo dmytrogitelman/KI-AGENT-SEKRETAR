@@ -40,7 +40,7 @@ export async function createTask(userId: string, input: CreateTaskInput): Promis
     const task: Task = {
       id: `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       title: input.title.trim(),
-      description: input.description?.trim(),
+      description: input.description?.trim() || '',
       dueAt: input.dueAt,
       status: 'open',
       priority: input.priority || 'medium',
@@ -63,7 +63,7 @@ export async function createTask(userId: string, input: CreateTaskInput): Promis
 
     return {
       ok: true,
-      task,
+      task: task || undefined,
     };
   } catch (error) {
     console.error('[CREATE TASK ERROR]', error);
@@ -130,10 +130,17 @@ export async function updateTask(
     }
 
     // Update the task
+    const existingTask = userTasks[taskIndex];
     const updatedTask: Task = {
-      ...userTasks[taskIndex],
-      ...updates,
+      id: existingTask.id,
+      createdAt: existingTask.createdAt,
       updatedAt: new Date().toISOString(),
+      title: updates.title || existingTask.title,
+      description: updates.description || existingTask.description,
+      priority: updates.priority || existingTask.priority,
+      dueAt: updates.dueAt || existingTask.dueAt,
+      status: updates.status || existingTask.status,
+      tags: updates.tags || existingTask.tags,
     };
 
     userTasks[taskIndex] = updatedTask;

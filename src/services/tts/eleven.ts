@@ -2,8 +2,8 @@ import fs from 'fs';
 import path from 'path';
 import https from 'https';
 
-const ELEVEN_KEY = process.env.ELEVENLABS_API_KEY || '';
-const VOICE_ID = process.env.ELEVENLABS_VOICE_ID || '21m00Tcm4TlvDq8ikWAM'; // Rachel
+const ELEVEN_KEY = process.env['ELEVENLABS_API_KEY'] || '';
+const VOICE_ID = process.env['ELEVENLABS_VOICE_ID'] || '21m00Tcm4TlvDq8ikWAM'; // Rachel
 
 export async function ttsElevenLabs(text: string, filenameHint='reply'): Promise<string> {
   if (!ELEVEN_KEY) throw new Error('ELEVENLABS_API_KEY missing');
@@ -47,3 +47,4 @@ export async function ttsElevenLabs(text: string, filenameHint='reply'): Promise
     req.end();
   });
 }
+
