@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import twilio from 'twilio';
+import { sendTextMessage, sendMediaMessage } from '../../services/whatsapp/twilioClient';
 
 const whatsappRouter = Router();
 
@@ -94,35 +95,22 @@ whatsappRouter.post('/webhook/whatsapp', async (req: Request, res: Response) => 
   }
 
   // 4) Асинхронная отправка ответа в WhatsApp
-  if (twilioClient && From && process.env['TWILIO_WHATSAPP_NUMBER']) {
+  if (From) {
     try {
-      // 4.1 Текст
-      await twilioClient.messages.create({
-        from: process.env['TWILIO_WHATSAPP_NUMBER']!,
-        to: From,
-        body: replyText,
-      });
+      // 4.1 Текст через новый helper
+      await sendTextMessage(From, replyText);
       console.log('[WA OUT TEXT] sent');
 
       // 4.2 TTS через ElevenLabs (если ключ есть и оркестратор рекомендует)
-      if (process.env['ELEVENLABS_API_KEY'] && shouldUseTTS) {
-        const { ttsElevenLabs } = await import('../../services/tts/eleven');
+      if (process.env['ELEVENLABS_API_KEY'] && shouldUseTTS && process.env['PUBLIC_BASE_URL']) {
         try {
+          const { ttsElevenLabs } = await import('../../services/tts/eleven');
           const audioOut = await ttsElevenLabs(replyText, 'reply');
           const fname = audioOut.split(/[/\\]/).pop()!;
           const base = (process.env['PUBLIC_BASE_URL'] || '').replace(/\/+$/, '');
-          if (!base) {
-            console.warn('PUBLIC_BASE_URL не задан! Укажи, например: https://<твой-ngrok>.ngrok-free.app');
-          } else {
-            const publicUrl = `${base}/media/${fname}`;
-            await twilioClient.messages.create({
-              from: process.env['TWILIO_WHATSAPP_NUMBER']!,
-              to: From,
-              body: '(Голосовой ответ)',
-              mediaUrl: [ publicUrl ],
-            });
-            console.log('[WA OUT VOICE] sent', publicUrl);
-          }
+          const publicUrl = `${base}/media/${fname}`;
+          await sendMediaMessage(From, '(Голосовой ответ)', publicUrl);
+          console.log('[WA OUT VOICE] sent', publicUrl);
         } catch (e) {
           console.error('[TTS ERROR]', e);
         }
@@ -131,7 +119,7 @@ whatsappRouter.post('/webhook/whatsapp', async (req: Request, res: Response) => 
       console.error('[WA OUT ERROR]', err);
     }
   } else {
-    console.warn('[WA OUT SKIP] Missing Twilio creds or From');
+    console.warn('[WA OUT SKIP] Missing From number');
   }
 });
 

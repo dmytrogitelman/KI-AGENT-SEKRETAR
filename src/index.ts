@@ -69,11 +69,3 @@ process.on('SIGINT', () => {
   process.exit(0);
 });
 
-// src/index.ts — локальный dev-сервер
-// import app from './app'; // Commented out due to conflict
-
-// const PORT = Number(process.env['PORT'] || 3000); // Moved to app.listen
-app.listen(Number(process.env['PORT'] || 3000), () => {
-  console.log(`🚀 Local server on http://127.0.0.1:${Number(process.env['PORT'] || 3000)}`);
-});
-

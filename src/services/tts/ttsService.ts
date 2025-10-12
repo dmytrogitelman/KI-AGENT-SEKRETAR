@@ -1,14 +1,13 @@
-import { ElevenLabsTTS } from './elevenlabs';
+import { ttsElevenLabs } from './eleven';
 import { AzureTTS } from './azure';
 import { logger } from '../../utils/logger';
+import * as fs from 'fs';
 
 export class TTSService {
-  private elevenLabs: ElevenLabsTTS;
   private azure: AzureTTS;
   private primaryProvider: 'elevenlabs' | 'azure';
 
   constructor() {
-    this.elevenLabs = new ElevenLabsTTS();
     this.azure = new AzureTTS();
     this.primaryProvider = 'elevenlabs'; // Default to ElevenLabs
   }
@@ -18,7 +17,8 @@ export class TTSService {
       // Try primary provider first
       if (this.primaryProvider === 'elevenlabs') {
         try {
-          return await this.elevenLabs.synthesize(text);
+          const filePath = await ttsElevenLabs(text, 'tts');
+          return fs.readFileSync(filePath);
         } catch (error) {
           logger.warn('ElevenLabs TTS failed, falling back to Azure', { error });
           this.primaryProvider = 'azure';
@@ -59,7 +59,8 @@ export class TTSService {
   async getAvailableVoices(): Promise<any[]> {
     try {
       if (this.primaryProvider === 'elevenlabs') {
-        return await this.elevenLabs.getVoices();
+        // ElevenLabs doesn't have a getVoices method in the simple implementation
+        return [];
       } else {
         return await this.azure.getVoices();
       }
