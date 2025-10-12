@@ -132,6 +132,9 @@ media/
 prisma/dev.db
 prisma/*.sqlite
 
-
-
-
+# Large files / Archives
+*.zip
+*.rar
+*.7z
+*.tar.gz
+*.tar
