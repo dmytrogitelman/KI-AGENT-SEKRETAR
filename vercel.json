@@ -1,7 +1,5 @@
 ﻿{
-  "builds": [{ "src": "api/**/*.ts", "use": "@vercel/node" }],
-  "routes": [
-    { "src": "/webhook/whatsapp", "dest": "/api/webhook/whatsapp" },
-    { "src": "/api/status", "dest": "/api/index.ts" }
-  ]
+  "functions": {
+    "api/**/*.ts": { "runtime": "nodejs20.x" }
+  }
 }
