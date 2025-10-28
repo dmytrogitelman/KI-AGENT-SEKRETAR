@@ -1,1 +1,10 @@
-﻿{}
+﻿{
+  "builds": [
+    { "src": "api/**/*.ts", "use": "@vercel/node" }
+  ],
+  "routes": [
+    { "src": "/api/webhook/whatsapp", "dest": "/api/webhook/whatsapp.ts" },
+    { "src": "/api/webhook", "dest": "/api/webhook/index.ts" },
+    { "src": "/api/status", "dest": "/api/index.ts" }
+  ]
+}
