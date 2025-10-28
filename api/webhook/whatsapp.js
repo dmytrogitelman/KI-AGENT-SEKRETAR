@@ -1,1 +1,1 @@
-﻿export { default } from "../webhook.js";
+﻿export { default } from "./index.js";
